@@ -1,0 +1,40 @@
+
+.cgen-box {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+  
+  .cgen-box input {
+    margin-right: 16px;
+  }
+  
+  .codegen_master {
+    padding: 32px;
+  }
+  
+  .codegen_master > textarea {
+    width: 100%;
+    height: 350px;
+    font-family: 'Courier New';
+    margin-bottom: 32px;
+  }
+  
+  .codegen_master > button {
+    margin: 16px 0 32px 0;
+  }
+  
+  .codegen_master > textarea.short {
+    height: 150px;
+  }
+  
+  div.codegentitle {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  div.codegentitle img {
+    position: relative;
+    top: 7px;
+  }

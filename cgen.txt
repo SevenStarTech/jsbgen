@@ -1,0 +1,2954 @@
+.cgen-box {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.cgen-box input {
+  margin-right: 16px;
+}
+
+.codegen_master {
+  padding: 32px;
+}
+
+.codegen_master > textarea {
+  width: 100%;
+  height: 350px;
+  font-family: 'Courier New';
+  margin-bottom: 32px;
+}
+
+.codegen_master > button {
+  margin: 16px 0 32px 0;
+}
+
+.codegen_master > textarea.short {
+  height: 150px;
+}
+
+div.codegentitle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+div.codegentitle img {
+  position: relative;
+  top: 7px;
+}
+
+import React, { useEffect, useState } from 'react';
+import MasterPage from 'pages/MasterPage';
+import TitledInput from 'components/titledInput/TitledInput';
+import Button from 'components/button/Button';
+import Select from 'react-select';
+import { CGenColumn } from './CGenTypes';
+import './CGen.scss';
+import CGenEntity from './CGenEntity';
+import CGenResponse from './CGenResponse';
+import CGenUpdateRequest from './CGenUpdateRequest';
+import CGenCreateRequest from './CGenCreateRequest';
+import CGenRepository from './CGenRepository';
+import CGenHelper from './CGenHelper';
+import CGenService from './CGenService';
+import ConvergeLogo from 'images/converge_final_logo_color.svg';
+import CGenController from './CGenController';
+import CGenServiceTest from './CGenServiceTest';
+import Axios from 'axios';
+
+export interface SelectOptions {
+  label: string;
+  value: string;
+}
+
+const cgenUrl = 'http://localhost:3000/api/cgen?table=';
+
+const CGen = (): JSX.Element => {
+  const connects: string[][] = [];
+  let c = -1;
+  connects[++c] = [];
+  connects[c][0] = 'Connect Template';
+  connects[c][1] = 'user:password@host:port/db';
+  connects[c][2] = '';
+
+  connects[++c] = [];
+  connects[c][0] = 'Local Offer Board DB';
+  connects[c][1] = 'appdbaid@localhost:5432/convergeplanningdb'; // ?currentSchema=offerboard
+  connects[c][2] = 'ob';
+
+  connects[++c] = [];
+  connects[c][0] = 'Local Converge Order Management DB';
+  connects[c][1] = 'postgres:postpost@localhost:5432/ordermanagementdb';
+  connects[c][2] = 'oms';
+
+  connects[++c] = [];
+  connects[c][0] = 'Local OLD Converge Order DB';
+  connects[c][1] = 'postgres:postpost@localhost:5432/convergeorderdb';
+  connects[c][2] = 'oni';
+
+  connects[++c] = [];
+  connects[c][0] = 'Local Converge Planning DB';
+  connects[c][1] = 'postgres:postpost@localhost:5432/convergeplanningdb';
+  connects[c][2] = 'planning';
+
+  const setting: string[][] = [];
+  let i = -1;
+
+  setting[++i] = [];
+  setting[i][0] = '';
+  setting[i][1] = '';
+  setting[i][2] = '';
+  setting[i][3] = '';
+  setting[i][4] = '';
+  setting[i][5] = '';
+  setting[i][6] = '';
+  setting[i][7] = '';
+  setting[i][8] = '';
+
+  setting[++i] = [];
+  setting[i][0] = 'offer';
+  setting[i][1] = 'offer';
+  setting[i][2] = '/offers';
+  setting[i][3] = '/offers/{offerId}';
+  setting[i][4] = '';
+  setting[i][5] = '@offer';
+  setting[i][6] = '';
+  setting[i][7] = '';
+  setting[i][8] = '';
+  setting[i][9] = 'ob';
+
+  setting[++i] = [];
+  setting[i][0] = 'people';
+  setting[i][1] = 'people';
+  setting[i][2] = '/resrouces';
+  setting[i][2] = '/people';
+  setting[i][3] = 'resources.people';
+  setting[i][4] = '';
+  setting[i][5] = 'resources.people@people_role.primary_role';
+  setting[i][6] =
+    'resources.people@people_role,resources.people@available,resources.people@PEOPLE_RESOURCE_PEOPLE.people_resource,resources.people@unavailable_people.unavailable';
+  setting[i][7] =
+    'resources.people@people_role,resources.people@available,resources.people@PEOPLE_RESOURCE_PEOPLE.people_resource';
+  setting[i][9] = 'plan';
+
+  setting[++i] = [];
+  setting[i][0] = 'equipment';
+  setting[i][1] = 'equipment';
+  setting[i][2] = '/assets';
+  setting[i][3] = '/equipment';
+  setting[i][4] = 'assets';
+  setting[i][5] = '';
+  setting[i][6] = '';
+  setting[i][7] = 'assets@unavailable_equipment';
+  setting[i][8] = 'assets@unavailable_equipment';
+  setting[i][9] = 'plan';
+
+  setting[++i] = [];
+  setting[i][0] = 'schedule_people';
+  setting[i][1] = 'schedule_people';
+  setting[i][2] = '/assets';
+  setting[i][3] = '/schedules';
+  setting[i][4] = 'assets.people';
+  setting[i][5] = 'assets.people@people';
+  setting[i][6] = '';
+  setting[i][7] = '';
+  setting[i][8] = '';
+  setting[i][9] = 'plan';
+
+  setting[++i] = [];
+  setting[i][0] = 'schedule_equipment';
+  setting[i][1] = 'schedule_equipment';
+  setting[i][2] = '/assets';
+  setting[i][3] = '/schedules';
+  setting[i][4] = 'assets.equipment';
+  setting[i][5] = 'assets.equipment@equipment';
+  setting[i][6] = '';
+  setting[i][7] = '';
+  setting[i][8] = '';
+  setting[i][9] = 'plan';
+
+  setting[++i] = [];
+  setting[i][0] = 'unavailable_equipment';
+  setting[i][1] = 'unavailable_equipment';
+  setting[i][2] = '/assets';
+  setting[i][3] = '/unavailable';
+  setting[i][4] = 'assets';
+  setting[i][5] = 'assets@equipment';
+  setting[i][6] = '';
+  setting[i][7] = '';
+  setting[i][8] = '';
+  setting[i][9] = 'plan';
+
+  setting[++i] = [];
+  setting[i][0] = 'plan_order';
+  setting[i][1] = 'order';
+  setting[i][2] = '/planning/order';
+  setting[i][3] = '';
+  setting[i][4] = 'planning';
+  setting[i][5] = '';
+  setting[i][6] = '';
+  setting[i][7] = 'planning@plan_job.job';
+  setting[i][8] = 'planning@plan_job.job';
+  setting[i][9] = 'plan';
+
+  setting[++i] = [];
+  setting[i][0] = 'plan_job';
+  setting[i][1] = 'job';
+  setting[i][2] = '/planning/job';
+  setting[i][3] = '';
+  setting[i][4] = 'planning';
+  setting[i][5] = 'planning@plan_order.order';
+  setting[i][6] = '';
+  setting[i][7] = 'planning@plan_job_service.job_service';
+  setting[i][8] = 'planning@plan_job_service.job_service';
+  setting[i][9] = 'plan';
+
+  setting[++i] = [];
+  setting[i][0] = 'plan_job_service';
+  setting[i][1] = 'job_service';
+  setting[i][2] = '/planning/job/{jobId}';
+  setting[i][3] = '/services';
+  setting[i][4] = 'planning';
+  setting[i][5] = 'planning@plan_job.job';
+  setting[i][6] = '';
+  setting[i][7] = '';
+  setting[i][8] = '';
+  setting[i][9] = 'plan';
+
+  setting[++i] = [];
+  setting[i][0] = 'address';
+  setting[i][1] = 'address';
+  setting[i][2] = '/orders/{orderId}';
+  setting[i][3] = '/addresses/{addressId}';
+  setting[i][4] = '';
+  setting[i][5] = '@order';
+  setting[i][6] = '';
+  setting[i][7] = '';
+  setting[i][8] = '';
+  setting[i][9] = 'plan';
+
+  const [connectIdx, setConnectIdx] = useState(1);
+  const [connect, setConnect] = useState(connects[connectIdx][1]);
+  const [setIdx, setSetIdx] = useState(0);
+  const [table, setTable] = useState(setting[setIdx][0]);
+  const [entity, setEntity] = useState(setting[setIdx][1]);
+  const [rootApi, setRootApi] = useState(setting[setIdx][2]);
+  const [api, setApi] = useState(setting[setIdx][3]);
+  const [pkg, setPkg] = useState(setting[setIdx][4]);
+  const [parents, setParents] = useState(setting[setIdx][5]);
+  const [uncles, setUncles] = useState(setting[setIdx][6]);
+  const [kids, setKids] = useState(setting[setIdx][7]);
+  const [includedKids, setIncludedKids] = useState(setting[setIdx][8]);
+
+  const [columns, setColumns] = useState<CGenColumn[]>([]);
+
+  const getColumns = (table: string): Promise<CGenColumn[]> => {
+    // postgres:postpost@localhost:5432/convergeplanningd
+    return Axios(cgenUrl + table + '&connect=' + connect).then(
+      ({ data }: { data: CGenColumn[] }) => data,
+    );
+  };
+
+  const generateCode = (): void => {
+    if (table) {
+      getColumns(table).then(data => {
+        setColumns(data);
+      });
+    }
+  };
+
+  const generateCodeWithSetState = (): void => {
+    if (setting[setIdx][0]) {
+      setTable(setting[setIdx][0]);
+      setEntity(setting[setIdx][1]);
+      setRootApi(setting[setIdx][2]);
+      setApi(setting[setIdx][3]);
+      setPkg(setting[setIdx][4]);
+      setParents(setting[setIdx][5]);
+      setUncles(setting[setIdx][6]);
+      setKids(setting[setIdx][7]);
+      setIncludedKids(setting[setIdx][8]);
+
+      getColumns(setting[setIdx][0]).then(data => {
+        setColumns(data);
+      });
+    } else {
+      setTable(setting[setIdx][0]);
+      setEntity(setting[setIdx][1]);
+      setRootApi(setting[setIdx][2]);
+      setApi(setting[setIdx][3]);
+      setPkg(setting[setIdx][4]);
+      setParents(setting[setIdx][5]);
+      setUncles(setting[setIdx][6]);
+      setKids(setting[setIdx][7]);
+      setIncludedKids(setting[setIdx][8]);
+    }
+  };
+
+  // useEffect(() => {
+  //   debugger;
+  // }, [columns]);
+
+  useEffect(() => {
+    generateCodeWithSetState();
+  }, [setIdx]);
+
+  useEffect(() => {
+    setConnect(connects[connectIdx][1]);
+  }, [connectIdx]);
+
+  // useEffect(() => {
+  //   if (!api) {
+  //     setApi('/' + entity + 's');
+  //   }
+  // }, [entity]);
+
+  const ddConnects: SelectOptions[] = connects.map((connect, idx) => {
+    let sel: SelectOptions = {
+      value: idx.toString(),
+      label: connect[0],
+    };
+    return sel;
+  });
+
+  const ddSettings: SelectOptions[] = setting.map((table, idx) => {
+    let sel: SelectOptions = {
+      value: idx.toString(),
+      label: table[0],
+    };
+    return sel;
+  });
+
+  return (
+    <MasterPage
+      title={
+        <div className="codegentitle">
+          <img height="35" src={ConvergeLogo} />
+          &nbsp;&nbsp;Java API Code Generator
+        </div>
+      }
+      leftBarContent={
+        <div className="codegen_master" style={{ padding: '32px' }}>
+          <div className="title-style unfocused">PRE_DEFINED CONNECTIONS</div>
+          <Select
+            options={ddConnects}
+            // className={styles[`select-filter`]}
+            value={ddConnects[connectIdx]}
+            onChange={selection => {
+              debugger;
+              if (selection) {
+                let sel = selection as SelectOptions;
+                if (sel.value) {
+                  setConnectIdx(parseInt(sel.value));
+                }
+              }
+            }}
+          />
+          <br />
+          <TitledInput
+            width="100%"
+            title="POSTGRES DATABASE CONNECTION"
+            text={connect}
+            onChange={setConnect}
+          />
+          <Button
+            text="GENERATE CODE"
+            color="primary"
+            variant="contained"
+            onClick={generateCode}
+            width="100%"
+          />
+          <div className="title-style unfocused">
+            PRE-DEFINED TABLE PARAMETERS
+          </div>
+          <Select
+            options={ddSettings}
+            // className={styles[`select-filter`]}
+            value={ddSettings[setIdx]}
+            onChange={selection => {
+              if (selection) {
+                let sel = selection as SelectOptions;
+                if (sel.value) {
+                  setSetIdx(parseInt(sel.value));
+                }
+              }
+            }}
+          />
+          <br />
+          <TitledInput
+            width="100%"
+            title="Base Package"
+            text={pkg}
+            onChange={setPkg}
+          />
+          <TitledInput
+            width="100%"
+            title="Table"
+            text={table}
+            onChange={setTable}
+          />
+          <TitledInput
+            width="100%"
+            title="Entity"
+            text={entity}
+            onChange={setEntity}
+          />
+          <TitledInput
+            width="100%"
+            title="Root API"
+            text={rootApi}
+            onChange={setRootApi}
+          />
+          <TitledInput
+            width="100%"
+            title="Entity API"
+            text={api}
+            onChange={setApi}
+          />
+          <TitledInput
+            width="100%"
+            title="Parent(s) :: BASEPKG@TABLE{.ENTITY}..."
+            text={parents}
+            onChange={setParents}
+          />
+          <TitledInput
+            width="100%"
+            title="Foreign Key(s) :: BASEPKG@TABLE{.ENTITY}..."
+            text={uncles}
+            onChange={setUncles}
+          />
+          <TitledInput
+            width="100%"
+            title="Children :: BASEPKG@TABLE{.ENTITY}..."
+            text={kids}
+            onChange={setKids}
+          />
+          <TitledInput
+            width="100%"
+            title="Response Children :: BASEPKG@TABLE{.ENTITY}..."
+            text={includedKids}
+            onChange={setIncludedKids}
+          />
+        </div>
+      }
+    >
+      <div className="codegen_master">
+        <CGenEntity
+          table={table}
+          entity={entity}
+          columns={columns}
+          rootApi={rootApi}
+          api={api}
+          pkg={pkg}
+          parents={parents}
+          uncles={uncles}
+          kids={kids}
+          includedKids={includedKids}
+        />
+        <CGenResponse
+          table={table}
+          entity={entity}
+          columns={columns}
+          rootApi={rootApi}
+          api={api}
+          pkg={pkg}
+          parents={parents}
+          uncles={uncles}
+          kids={kids}
+          includedKids={includedKids}
+        />
+        <CGenCreateRequest
+          table={table}
+          entity={entity}
+          columns={columns}
+          rootApi={rootApi}
+          api={api}
+          pkg={pkg}
+          parents={parents}
+          uncles={uncles}
+          kids={kids}
+          includedKids={includedKids}
+        />
+        <CGenUpdateRequest
+          table={table}
+          entity={entity}
+          columns={columns}
+          rootApi={rootApi}
+          api={api}
+          pkg={pkg}
+          parents={parents}
+          uncles={uncles}
+          kids={kids}
+          includedKids={includedKids}
+        />
+        <CGenRepository
+          table={table}
+          entity={entity}
+          columns={columns}
+          rootApi={rootApi}
+          api={api}
+          pkg={pkg}
+          parents={parents}
+          uncles={uncles}
+          kids={kids}
+          includedKids={includedKids}
+        />
+        <CGenHelper
+          table={table}
+          entity={entity}
+          columns={columns}
+          rootApi={rootApi}
+          api={api}
+          pkg={pkg}
+          parents={parents}
+          uncles={uncles}
+          kids={kids}
+          includedKids={includedKids}
+        />
+        <CGenService
+          table={table}
+          entity={entity}
+          columns={columns}
+          rootApi={rootApi}
+          api={api}
+          pkg={pkg}
+          parents={parents}
+          uncles={uncles}
+          kids={kids}
+          includedKids={includedKids}
+        />
+        <CGenController
+          table={table}
+          entity={entity}
+          columns={columns}
+          rootApi={rootApi}
+          api={api}
+          pkg={pkg}
+          parents={parents}
+          uncles={uncles}
+          kids={kids}
+          includedKids={includedKids}
+        />
+        <CGenServiceTest
+          table={table}
+          entity={entity}
+          columns={columns}
+          rootApi={rootApi}
+          api={api}
+          pkg={pkg}
+          parents={parents}
+          uncles={uncles}
+          kids={kids}
+          includedKids={includedKids}
+        />
+      </div>
+    </MasterPage>
+  );
+};
+
+export default CGen;
+
+import React, { useEffect, useState } from 'react';
+import { CGenColumn } from './CGenTypes';
+import c from './CGenUtil';
+import CGenDisplay from './CGenDisplay';
+
+const CGenController = ({
+  table,
+  entity,
+  columns,
+  rootApi,
+  api,
+  pkg,
+  parents,
+  uncles,
+  kids,
+  includedKids,
+}: {
+  table: string;
+  entity: string;
+  columns: CGenColumn[];
+  rootApi: string;
+  api: string;
+  pkg: string;
+  parents: string;
+  uncles: string;
+  kids: string;
+  includedKids: string;
+}): JSX.Element => {
+  const [code, setCode] = useState('');
+
+  const camEntity = c.camelCase(entity);
+  const capEntity = c.capitalCase(entity);
+
+  useEffect(() => {
+    let newCode = '';
+    if (columns && columns.length > 0) {
+      //---------------------------------------
+      // GET PARAMETER LIST BASED ON PARENTS
+      //---------------------------------------
+      let list = '';
+      let listWithType = '';
+      let mapping = '';
+      let params = '';
+      if (parents) {
+        parents.split(',').map(parent => {
+          let pte = c.splitPackageTableEntity(parent);
+
+          if (params) {
+            params += ',\n';
+          }
+          params += `            @PathVariable(name = "${pte.camEntity}Id") String ${pte.camEntity}Id`;
+
+          if (list) {
+            list += ', ';
+            listWithType += ', ';
+          }
+          list += `${pte.camEntity}Id`;
+          listWithType += `String ${pte.camEntity}Id`;
+
+          mapping += `/${pte.camEntity}s/{${pte.camEntity}Id}`;
+
+          return '';
+        });
+      }
+      let paramsFull = params;
+      if (paramsFull) {
+        paramsFull += ',\n';
+      }
+      paramsFull += `            @PathVariable(name = "${camEntity}Id") String ${camEntity}Id`;
+
+      let listFull = list;
+      if (listFull) {
+        listFull += ', ';
+      }
+      listFull += `${camEntity}Id`;
+
+      let mappingFull = mapping + `/{${camEntity}Id}`;
+
+      //@RequestMapping("${mapping}${c.camelCase(api).toLowerCase()}")
+      newCode = `package ${c.super_root()}${pkg}.controller;
+
+import ${c.super_root()}.exceptions.ApiError;
+import ${c.super_root()}.exceptions.ResourceNotFoundException;
+import ${c.super_root()}.mapper.DozerMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.net.URI;
+import java.util.List; 
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
+import ${c.super_root()}${pkg}.model.*;
+import ${c.super_root()}${pkg}.service.${capEntity}Service;
+
+@Slf4j
+@RestController
+@RequestMapping("${rootApi}${mapping}")
+@RequiredArgsConstructor
+@SuppressWarnings("squid:S1192")
+public class ${capEntity}Controller {
+
+  private final ${capEntity}Service ${camEntity}Service;
+  private final DozerMapper dozerMapper;\n\n`;
+
+      //---------------------------------------
+      // GET ALL ROWS CONTROLLER
+      //---------------------------------------
+      newCode += `  @GetMapping${api ? '("' + api + '")' : ''}
+  public ResponseEntity<List<${capEntity}>> get${capEntity}s(${
+        params ? '\n' + params : ''
+      }) {
+    List<${capEntity}> ${camEntity}s = ${camEntity}Service.get${capEntity}s(${list});
+    return ResponseEntity.ok(${camEntity}s); 
+  }\n\n`;
+
+      //---------------------------------------
+      // GET SINGLE ROW CONTROLLER
+      //---------------------------------------
+      newCode += `  @GetMapping("${api}/{${camEntity}Id}")
+  public ResponseEntity<${capEntity}> get${capEntity}(${
+        paramsFull ? '\n' + paramsFull : ''
+      }) {
+    ${capEntity} ${camEntity} = ${camEntity}Service.get${capEntity}(${listFull});
+    return ResponseEntity.ok(${camEntity});
+  }\n\n`;
+
+      //---------------------------------------
+      // CREATE AN ENTITY
+      //---------------------------------------
+      newCode += `  @PostMapping${api ? '("' + api + '")' : ''}
+  public ResponseEntity create${capEntity}(${
+        params ? '\n' + params + ', \n            ' : ''
+      }@RequestBody ${capEntity}CreateRequest request) {
+
+      try {
+        ${capEntity} created${capEntity} = ${camEntity}Service.create${capEntity}(${list +
+        (list ? ', ' : '')}request);
+
+        ${capEntity} response = dozerMapper.convert(created${capEntity}, ${capEntity}.class);
+
+        URI location = linkTo(methodOn(${capEntity}Controller.class)
+                  .get${capEntity}(${list ? list + ', ' : ''}response.getId()))
+                  .toUri();
+
+        return ResponseEntity
+                  .created(location)
+                  .body(response);
+      } catch (ResourceNotFoundException e) {
+        return ResponseEntity
+                  .badRequest()
+                  .body(ApiError.builder()
+                          .errorMessage("No " + e.getResourceType().toString().toLowerCase()
+                                  + " found with ID " + e.getResourceId()).build());
+      }
+  }\n\n`;
+
+      //---------------------------------------
+      // UPDATE AN ENTITY
+      //---------------------------------------
+      newCode += `  @PutMapping("${api}/{${camEntity}Id}")
+  public ResponseEntity<${capEntity}> update${capEntity}(${
+        paramsFull ? '\n' + paramsFull + ', \n            ' : ''
+      }@Valid @RequestBody ${capEntity}UpdateRequest request) {
+
+    ${capEntity} updated${capEntity} = ${camEntity}Service.update${capEntity}(${listFull +
+        (listFull ? ', ' : '')}request);
+
+    return ResponseEntity.ok(updated${capEntity});
+  }\n\n`;
+
+      //---------------------------------------
+      // DELETE AN ENTITY
+      //---------------------------------------
+      newCode += `  @DeleteMapping("${api}/{${camEntity}Id}")
+  public ResponseEntity delete${capEntity}(
+${paramsFull}) {
+
+    ${camEntity}Service.delete${capEntity}(${listFull});
+    return ResponseEntity.ok().build();
+  }`;
+
+      newCode += `\n}`;
+      setCode(newCode);
+    }
+  });
+  return <CGenDisplay entity={entity} fileEnding="controller" code={code} />;
+};
+
+export default CGenController;
+
+import React, { useEffect, useState } from "react";
+import { CGenColumn } from "./CGenTypes";
+import CGenUpdateRequest from "./CGenUpdateRequest";
+
+const CGenCreateRequest = ({
+  table,
+  entity,
+  columns,
+  rootApi,
+  api,
+  pkg,
+  parents,
+  uncles,
+  kids,
+  includedKids,
+}: {
+  table: string;
+  entity: string;
+  columns: CGenColumn[];
+  rootApi: string;
+  api: string;
+  pkg: string;
+  parents: string;
+  uncles: string;
+  kids: string;
+  includedKids: string;
+}): JSX.Element => (
+  <CGenUpdateRequest
+    table={table}
+    entity={entity}
+    columns={columns}
+    rootApi={rootApi}
+    api={api}
+    pkg={pkg}
+    parents={parents}
+    uncles={uncles}
+    kids={kids}
+    includedKids={includedKids}
+    forCreate={true}
+  />
+);
+
+export default CGenCreateRequest;
+
+import React from 'react';
+import c from './CGenUtil';
+import Button from 'components/button/Button';
+
+const CGenDisplay = ({
+  entity,
+  fileEnding,
+  code,
+  short = false,
+}: {
+  entity: string;
+  fileEnding: string;
+  code: string;
+  short?: boolean;
+}): JSX.Element => {
+  return (
+    <>
+      {/* <h1>{table.toUpperCase()} ENTITY CLASS</h1> */}
+      <Button
+        text={`${entity.toUpperCase()} ${c
+          .capitalCase(fileEnding)
+          .toUpperCase()} CLASS`}
+        variant="contained"
+        color="save"
+        onClick={() => {
+          c.saveFile(
+            `${c.capitalCase(entity)}${c.capitalCase(fileEnding)}.java`,
+            code,
+          );
+        }}
+        style={{ width: '500px', margin: '0px 0 8px 0' }}
+      />
+      <textarea
+        value={code}
+        spellCheck={false}
+        className={short ? 'short' : ''}
+      />
+    </>
+  );
+};
+
+export default CGenDisplay;
+
+import React, { useEffect, useState } from 'react';
+import { CGenColumn } from './CGenTypes';
+import c from './CGenUtil';
+import Button from 'components/button/Button';
+import CGenDisplay from './CGenDisplay';
+
+const CGenEntity = ({
+  table,
+  entity,
+  columns,
+  rootApi,
+  api,
+  pkg,
+  parents,
+  uncles,
+  kids,
+  includedKids,
+}: {
+  table: string;
+  entity: string;
+  columns: CGenColumn[];
+  rootApi: string;
+  api: string;
+  pkg: string;
+  parents: string;
+  uncles: string;
+  kids: string;
+  includedKids: string;
+}): JSX.Element => {
+  const [code, setCode] = useState('');
+
+  const camEntity = c.camelCase(entity);
+  const capEntity = c.capitalCase(entity);
+
+  useEffect(() => {
+    let newCode = '';
+    if (columns && columns.length > 0) {
+      newCode = `package ${c.super_root()}${pkg}.entity;
+
+import ${c.super_root()}.entity.BaseEntity;
+import lombok.*;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "${table}", uniqueConstraints = {@UniqueConstraint(columnNames = {"id", "tenant_id"})})
+@Getter
+@Setter
+@Builder
+@Audited
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class ${capEntity}Entity extends BaseEntity {
+`;
+      newCode += columns
+        .map(col => {
+          let s = '';
+          if (!c.isAuditColumn(col.column_name) && col.column_name !== 'id') {
+            let colParentFound = c.isIdForParent(col.column_name, parents);
+            let colUncleFound = c.isIdForParent(col.column_name, uncles);
+
+            if (colParentFound.found) {
+              //------------------------------------------------
+              // an id pointing to a parent
+              //------------------------------------------------
+              let pte = c.splitPackageTableEntity(colParentFound.parent);
+              s += `  @ManyToOne
+    @JoinColumn(name = "${c.camelCase(pte.table)}_id")
+    @EqualsAndHashCode.Exclude
+    private ${c.capitalCase(pte.table)}Entity ${c.camelCase(pte.table)};`;
+              s += '\n\n';
+            } else if (colUncleFound.found) {
+              //------------------------------------------------
+              // an id pointing to a foreign key
+              //------------------------------------------------
+              let pte = c.splitPackageTableEntity(colUncleFound.parent);
+              s = `  @OneToOne
+    @JoinColumn(name = "${pte.camEntity}_id")
+    private ${c.capitalCase(pte.table)}Entity ${c.camelCase(pte.table)};`;
+              s += '\n\n';
+            } else {
+              //------------------------------------------------
+              // a normal column
+              //------------------------------------------------
+              if (
+                col.primary === 'YES' ||
+                col.column_name === 'tenant_id' ||
+                col.is_nullable === 'NO'
+              ) {
+                s = `${c.getNotEmptyText(col, false)}  @Column(name = "${
+                  col.column_name
+                }", nullable = false)
+  private ${c.getColumnType(col.udt_name, col.column_name)} ${c.camelCase(
+                  col.column_name,
+                )};`;
+              } else {
+                s = `  @Column(name = "${col.column_name}")
+  private ${c.getColumnType(col.udt_name, col.column_name)} ${c.camelCase(
+                  col.column_name,
+                )};`;
+              }
+              s += '\n\n';
+              return s;
+            }
+          }
+        })
+        .join('');
+
+      if (kids) {
+        newCode += kids
+          .split(',')
+          .map(kid => {
+            let s = '';
+            let pte = c.splitPackageTableEntity(kid);
+            s = `  @OneToMany(mappedBy = "${table}", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  //@JoinColumn(name="${camEntity}_id", referencedColumnName="id")
+  @NotAudited
+  private List<${c.capitalCase(pte.entity)}Entity> ${c.camelCase(
+              pte.entity,
+            )} = new ArrayList<>();`;
+            s += '\n\n';
+            return s;
+          })
+          .join('');
+      }
+
+      if (parents) {
+        newCode += parents
+          .split(',')
+          .map(parent => {
+            let s = '';
+            let pte = c.splitPackageTableEntity(parent);
+            s = `  @ManyToOne
+  @JoinColumn(name = "${c.camelCase(pte.table)}_id")
+  @EqualsAndHashCode.Exclude
+  private ${c.capitalCase(pte.table)}Entity ${c.camelCase(pte.table)};`;
+            s += '\n\n';
+            return s;
+          })
+          .join('');
+      }
+
+      if (uncles) {
+        newCode += uncles
+          .split(',')
+          .map(uncle => {
+            let s = '';
+            let pte = c.splitPackageTableEntity(uncle);
+            s = `  @OneToOne
+  @JoinColumn(name = "${pte.camEntity}_id")
+  private ${c.capitalCase(pte.table)}Entity ${c.camelCase(pte.table)};`;
+            s += '\n\n';
+            return s;
+          })
+          .join('');
+      }
+
+      newCode += `}`;
+    }
+    setCode(newCode);
+  });
+
+  return <CGenDisplay entity={entity} fileEnding="entity" code={code} />;
+};
+
+export default CGenEntity;
+
+import React, { useEffect, useState } from 'react';
+import { CGenColumn } from './CGenTypes';
+import c from './CGenUtil';
+import Button from 'components/button/Button';
+import CGenDisplay from './CGenDisplay';
+
+const CGenHelper = ({
+  table,
+  entity,
+  columns,
+  rootApi,
+  api,
+  pkg,
+  parents,
+  uncles,
+  kids,
+  includedKids,
+  forCreate = false,
+}: {
+  table: string;
+  entity: string;
+  columns: CGenColumn[];
+  rootApi: string;
+  api: string;
+  pkg: string;
+  parents: string;
+  uncles: string;
+  kids: string;
+  includedKids: string;
+  forCreate?: boolean;
+}): JSX.Element => {
+  const [code, setCode] = useState('');
+
+  const camEntity = c.camelCase(entity);
+  const capEntity = c.capitalCase(entity);
+
+  useEffect(() => {
+    let newCode = '';
+    if (columns && columns.length > 0) {
+      newCode = `package ${c.super_root()}${pkg}.helper;
+
+import ${c.super_root()}.exceptions.ResourceNotFoundException;
+import ${c.super_root()}${pkg}.entity.*;
+import ${c.super_root()}${pkg}.repository.${capEntity}Repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
+import javax.validation.constraints.NotBlank;
+
+@Component
+@RequiredArgsConstructor
+@Validated
+public class ${c.capitalCase(c.replaceDotsWithDashes(pkg))}Helper {\n\n`;
+
+      if (!parents) {
+        newCode += `  private final ${capEntity}Repository ${camEntity}Repository;\n\n`;
+      }
+
+      newCode += `  public ${capEntity}Entity get${capEntity}Entity(`;
+
+      let list = '';
+      if (parents) {
+        let params = '';
+        parents.split(',').map(parent => {
+          let pte = c.splitPackageTableEntity(parent);
+          if (params) {
+            params += ',\n      ';
+          }
+          params += `@NotBlank(message = "${c.humanCase(
+            pte.entity,
+          )} Id cannot be null or empty.") String ${pte.camEntity}Id`;
+
+          if (list) {
+            list += ',';
+          }
+          list += `${pte.camEntity}Id`;
+
+          return '';
+        });
+        if (params) {
+          params += ',\n      ';
+        }
+        newCode += params;
+      }
+
+      newCode += `@NotBlank(message = "${c.humanCase(
+        entity,
+      )} Id cannot be null or empty.") String ${camEntity}Id`;
+      newCode += `) {\n`;
+
+      if (parents) {
+        let parentsArray = parents.split(',');
+        if (parentsArray.length > 0) {
+          let lastParent = parentsArray[parentsArray.length - 1];
+          let pte = c.splitPackageTableEntity(lastParent);
+          newCode += '\n';
+          newCode +=
+            `    ${pte.capEntity}Entity ${c.camelCase(pte.entity)}Entity = get${
+              pte.capEntity
+            }Entity(${list});` + '\n\n';
+          newCode += `    return ${c.camelCase(
+            pte.entity,
+          )}Entity.get${capEntity}().stream()
+            .filter(${camEntity} -> ${c.camelCase(
+            entity,
+          )}Id.equals(${c.camelCase(
+            entity,
+          )}.getId())).findFirst().orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.ResourceType.${camEntity.toUpperCase()}, ${c.camelCase(
+            entity,
+          )}Id));`;
+        }
+      }
+
+      if (!parents) {
+        newCode += '\n';
+        newCode += `    return ${camEntity}Repository.findById(${camEntity}Id)
+                .orElseThrow(() -> new ResourceNotFoundException(ResourceNotFoundException.ResourceType.${camEntity.toUpperCase()}, ${camEntity}Id));\n`;
+      }
+
+      newCode += '\n';
+      newCode += `  }`;
+      newCode += '\n';
+      newCode += `}`;
+    }
+    setCode(newCode);
+  });
+  return (
+    <CGenDisplay
+      entity={c.replaceDotsWithDashes(pkg)}
+      fileEnding="helper"
+      code={code}
+    />
+  );
+};
+
+export default CGenHelper;
+
+import React, { useEffect, useState } from 'react';
+import { CGenColumn } from './CGenTypes';
+import c from './CGenUtil';
+import Button from 'components/button/Button';
+import CGenDisplay from './CGenDisplay';
+
+const CGenRepository = ({
+  table,
+  entity,
+  columns,
+  rootApi,
+  api,
+  pkg,
+  parents,
+  uncles,
+  kids,
+  includedKids,
+  forCreate = false,
+}: {
+  table: string;
+  entity: string;
+  columns: CGenColumn[];
+  rootApi: string;
+  api: string;
+  pkg: string;
+  parents: string;
+  uncles: string;
+  kids: string;
+  includedKids: string;
+  forCreate?: boolean;
+}): JSX.Element => {
+  const [code, setCode] = useState('');
+
+  const camEntity = c.camelCase(entity);
+  const capEntity = c.capitalCase(entity);
+
+  useEffect(() => {
+    let newCode = '';
+    if (columns && columns.length > 0) {
+      newCode = `package ${c.super_root()}${pkg}.repository;
+import ${c.super_root()}${pkg}.entity.${capEntity}Entity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface ${capEntity}Repository extends JpaRepository<${capEntity}Entity, String> {
+
+}`;
+    }
+    setCode(newCode);
+  });
+  return (
+    <CGenDisplay
+      entity={entity}
+      fileEnding="repository"
+      code={code}
+      short={true}
+    />
+  );
+};
+
+export default CGenRepository;
+
+import React, { useEffect, useState } from 'react';
+import { CGenColumn } from './CGenTypes';
+import c from './CGenUtil';
+import Button from 'components/button/Button';
+import CGenDisplay from './CGenDisplay';
+
+const CGenResponse = ({
+  table,
+  entity,
+  columns,
+  rootApi,
+  api,
+  pkg,
+  parents,
+  uncles,
+  kids,
+  includedKids,
+}: {
+  table: string;
+  entity: string;
+  columns: CGenColumn[];
+  rootApi: string;
+  api: string;
+  pkg: string;
+  parents: string;
+  uncles: string;
+  kids: string;
+  includedKids: string;
+}): JSX.Element => {
+  const [code, setCode] = useState('');
+
+  const camEntity = c.camelCase(entity);
+  const capEntity = c.capitalCase(entity);
+
+  useEffect(() => {
+    let newCode = '';
+    if (columns && columns.length > 0) {
+      newCode = `package ${c.super_root()}${pkg}.model;
+
+import com.github.dozermapper.core.Mapping;
+`;
+
+      if (parents) {
+        newCode += parents
+          .split(',')
+          .map(parent => {
+            let s = '';
+            let pte = c.splitPackageTableEntity(parent);
+            s =
+              `import ` +
+              c.super_root() +
+              `.${c.camelCase(pte.basepkg)}.model.${c.capitalCase(pte.table)};`;
+            s += '\n';
+            return s;
+          })
+          .join('');
+      }
+
+      if (uncles) {
+        newCode += uncles
+          .split(',')
+          .map(uncle => {
+            let s = '';
+            let pte = c.splitPackageTableEntity(uncle);
+            s =
+              `import ` +
+              c.super_root() +
+              `.${c.camelCase(pte.basepkg)}.model.${c.capitalCase(pte.table)};`;
+            s += '\n';
+            return s;
+          })
+          .join('');
+      }
+
+      newCode += `
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ${capEntity} {
+`;
+      newCode += columns
+        .map(col => {
+          let s = '';
+          if (!c.isAuditColumn(col.column_name)) {
+            s = `  private ${c.getColumnType(
+              col.udt_name,
+              col.column_name,
+            )} ${c.camelCase(col.column_name)};`;
+            s += '\n';
+
+            if (
+              col.column_name.toLowerCase().indexOf('price') >= 0 ||
+              col.column_name.toLowerCase().indexOf('cost') >= 0
+            ) {
+              // output a version of this in cents
+              s += '\n';
+              s += `  @Getter(AccessLevel.NONE)
+  private BigInteger ${c.camelCase(col.column_name)}InCents;
+
+  public BigInteger get${c.capitalCase(col.column_name)}InCents() {
+      if (${c.camelCase(col.column_name)} == null) {
+          return null;
+      }
+      return ${c.camelCase(
+        col.column_name,
+      )}.multiply(BigDecimal.valueOf(100)).toBigInteger();
+  }`;
+              s += '\n\n';
+            }
+
+            return s;
+          }
+        })
+        .join('');
+
+      if (includedKids) {
+        newCode += includedKids
+          .split(',')
+          .map(kid => {
+            let s = '';
+            let pte = c.splitPackageTableEntity(kid);
+            s = `  private List<${c.capitalCase(pte.entity)}> ${c.camelCase(
+              pte.entity,
+            )}s;`;
+            s += '\n\n';
+            return s;
+          })
+          .join('');
+      }
+
+      newCode += `}`;
+    }
+    setCode(newCode);
+  });
+  return <CGenDisplay entity={entity} fileEnding="" code={code} />;
+};
+
+export default CGenResponse;
+
+import React, { useEffect, useState } from 'react';
+import { CGenColumn, CGenParent } from './CGenTypes';
+import c from './CGenUtil';
+import Button from 'components/button/Button';
+import CGenDisplay from './CGenDisplay';
+
+const CGenService = ({
+  table,
+  entity,
+  columns,
+  rootApi,
+  api,
+  pkg,
+  parents,
+  uncles,
+  kids,
+  includedKids,
+}: {
+  table: string;
+  entity: string;
+  columns: CGenColumn[];
+  rootApi: string;
+  api: string;
+  pkg: string;
+  parents: string;
+  uncles: string;
+  kids: string;
+  includedKids: string;
+}): JSX.Element => {
+  const [code, setCode] = useState('');
+
+  const camEntity = c.camelCase(entity);
+  const capEntity = c.capitalCase(entity);
+
+  useEffect(() => {
+    let newCode = '';
+    if (columns && columns.length > 0) {
+      newCode = `package ${c.super_root()}${pkg}.service;
+
+import ${c.super_root()}.exceptions.RelatedResourceNotFoundException;
+import ${c.super_root()}.mapper.DozerMapper;
+import ${c.super_root()}.${pkg}.entity.*;
+import ${c.super_root()}.${pkg}.model.*;
+import ${c.super_root()}.${pkg}.helper.*;
+import ${c.super_root()}.${pkg}.repository.*;
+import ${c.super_root()}.exceptions.ResourceNotFoundException;
+import ${c.super_root()}.exceptions.ResourceNotFoundException.*;
+import ${c.super_root()}.utils.SecurityUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.time.LocalDate;
+
+@Service
+@RequiredArgsConstructor
+@Validated
+public class ${capEntity}Service {
+          
+  private final SecurityUtils securityUtils;
+  private final ${c.capitalCase(
+    c.replaceDotsWithDashes(pkg),
+  )}Helper ${c.camelCase(c.replaceDotsWithDashes(pkg))}Helper;
+`;
+      if (kids) {
+        newCode += kids
+          .split(',')
+          .map(kid => {
+            let s = '';
+            let pte = c.splitPackageTableEntity(kid);
+            s = `  private final ${c.capitalCase(pte.table)}Repository ${
+              pte.camEntity
+            }Repository;`;
+            s += '\n';
+            return s;
+          })
+          .join('');
+      }
+
+      if (parents) {
+        newCode += parents
+          .split(',')
+          .map(parent => {
+            let s = '';
+            let pte = c.splitPackageTableEntity(parent);
+            s = `  private final ${c.capitalCase(pte.table)}Repository ${
+              pte.camEntity
+            }Repository;`;
+            s += '\n';
+            return s;
+          })
+          .join('');
+      }
+
+      newCode += `  private final ${capEntity}Repository ${camEntity}Repository;\n`;
+
+      newCode += `  private final DozerMapper dozerMapper;\n\n`;
+
+      //---------------------------------------
+      // GET PARAMETER LIST BASED ON PARENTS
+      //---------------------------------------
+      let list = '';
+      let listWithType = '';
+      let params = '';
+      if (parents) {
+        parents.split(',').map(parent => {
+          let pte = c.splitPackageTableEntity(parent);
+          if (params) {
+            params += ',\n';
+          }
+          params += `      @NotBlank(message = "${c.humanCase(
+            pte.entity,
+          )} Id cannot be null or empty.") String ${pte.camEntity}Id`;
+
+          if (list) {
+            list += ', ';
+            listWithType += ', ';
+          }
+          list += `${pte.camEntity}Id`;
+          listWithType += `String ${pte.camEntity}Id`;
+
+          return '';
+        });
+      }
+      let paramsFull = params;
+      if (paramsFull) {
+        paramsFull += ',\n';
+      }
+      paramsFull += `      @NotBlank(message = "${c.humanCase(
+        entity,
+      )} Id cannot be null or empty.") String ${camEntity}Id`;
+
+      let listFull = list;
+      if (listFull) {
+        listFull += ', ';
+      }
+      listFull += `${camEntity}Id`;
+
+      //     //---------------------------------------
+      //     // GET A SINGLE ENTITY
+      //     //---------------------------------------
+      //     newCode += `  public ${capEntity} get${capEntity}(String ${camEntity}Id) {
+
+      //   ${capEntity}Entity ${camEntity}Entity = ${camEntity}Repository.findById(${camEntity}Id)
+      //               .orElseThrow(() -> new ResourceNotFoundException(ResourceType.${c
+      //                 .capitalCase(entity)
+      //                 .toUpperCase()}, ${camEntity}Id));
+      //   return dozerMapper.convert(${camEntity}Entity, ${capEntity}.class);
+      // }\n\n`;
+
+      //     //---------------------------------------
+      //     // GET ALL ENTITIES
+      //     //---------------------------------------
+      //     newCode += `  public List<${capEntity}> get${capEntity}s() {
+
+      //   List<${capEntity}Entity> ${camEntity}Entities = ${camEntity}Repository.findAll();
+      //   return dozerMapper.convertAsList(${camEntity}Entities, ${capEntity}.class);
+      // }\n\n`;
+
+      //---------------------------------------
+      // GET A ENTITY FOR PARENT(S)
+      //---------------------------------------
+      if (parents) {
+        newCode += `  public ${capEntity} get${capEntity}(\n${paramsFull}) {\n\n`;
+
+        newCode += `        ${capEntity}Entity ${camEntity}Entity = ${c.camelCase(
+          c.replaceDotsWithDashes(pkg),
+        )}Helper.getUnavailableEquipmentEntity(${listFull});
+          return dozerMapper.convert(${camEntity}Entity, ${capEntity}.class);
+        }\n\n`;
+      }
+
+      // EXPERIMENTAL ... WORKS FOR A SINGLE PARENT ONLY
+      //---------------------------------------
+      // GET ALL ENTITIES FOR PARENT(S)
+      //---------------------------------------
+      if (parents) {
+        newCode += `  public List<${capEntity}> get${capEntity}s(\n${params}) {\n\n`;
+
+        let lastParent: CGenParent | undefined = undefined;
+
+        newCode += parents
+          .split(',')
+          .map(parent => {
+            let pte = c.splitPackageTableEntity(parent);
+            lastParent = pte;
+            return `${pte.capEntity}Entity ${pte.camEntity}Entity = ${
+              pte.camEntity
+            }Repository.findById(${pte.camEntity}Id)
+        .orElseThrow(() -> new ResourceNotFoundException(ResourceType.${pte.capEntity.toUpperCase()}, ${
+              pte.camEntity
+            }Id));\n\n`;
+          })
+          .join('');
+
+        if (lastParent) {
+          newCode += `        List<${capEntity}Entity> ${camEntity}Entities = ${
+            (lastParent as CGenParent).camEntity
+          }Entity.getUnavailableEquipment();
+          return dozerMapper.convertAsList(${camEntity}Entities, ${capEntity}.class);
+        }\n\n`;
+        }
+      }
+
+      //---------------------------------------
+      // CREATE ENTITY
+      //---------------------------------------
+      newCode += `  public ${capEntity} create${capEntity}(\n${
+        params ? params + ',\n' : ''
+      }
+      @Valid ${capEntity}CreateRequest request) {\n\n`;
+
+      if (parents) {
+        newCode +=
+          parents
+            .split(',')
+            .map(parent => {
+              let s = '';
+              let pte = c.splitPackageTableEntity(parent);
+              if (s) {
+                s += ', ';
+              }
+              s += `    ${pte.capEntity}Entity ${
+                pte.camEntity
+              }Entity = ${c.camelCase(pte.entity)}Repository.findById(${
+                pte.camEntity
+              }Id)
+          .orElseThrow(() -> new ResourceNotFoundException(ResourceType.${c
+            .camelCase(pte.entity)
+            .toUpperCase()}, ${pte.camEntity}Id));\n`;
+              return s;
+            })
+            .join('') + '\n';
+      }
+
+      newCode += `    ${capEntity}Entity ${camEntity}Entity = ${capEntity}Entity.builder()\n`;
+
+      if (parents) {
+        newCode += parents
+          .split(',')
+          .map(parent => {
+            let s = '';
+            let pte = c.splitPackageTableEntity(parent);
+            s += `    .${pte.camEntity}(${pte.camEntity}Entity)\n`;
+            return s;
+          })
+          .join('');
+      }
+
+      newCode += columns
+        .map(col => {
+          let s = '';
+          if (
+            col.column_name.toLowerCase() !== 'id' &&
+            !c.isIdForParent(col.column_name, parents).found &&
+            (c.camelCase(col.column_name) === 'tenantId' ||
+              col.column_name.toLowerCase().indexOf('id') === -1) &&
+            !c.isAuditColumn(col.column_name)
+          ) {
+            if (c.camelCase(col.column_name) === 'tenantId') {
+              s += `      .tenantId(securityUtils.getCurrentTenant())\n`;
+            } else {
+              s += `      .${c.camelCase(
+                col.column_name,
+              )}(request.get${c.capitalCase(col.column_name)}())\n`;
+            }
+          }
+          return s;
+        })
+        .join('');
+
+      newCode += `      .build();\n\n`;
+
+      newCode += `    ${camEntity}Entity = ${camEntity}Repository.save(${camEntity}Entity);
+
+    return dozerMapper.convert(${camEntity}Entity, ${capEntity}.class);
+  }\n\n`;
+
+      //---------------------------------------
+      // UPDATE ENTITY
+      //---------------------------------------
+      newCode += `  public ${capEntity} update${capEntity}(
+`;
+      newCode += paramsFull;
+      newCode += `,\n`;
+      newCode += `      @Valid ${capEntity}UpdateRequest request) {
+
+    ${capEntity}Entity ${camEntity}Entity = ${c.camelCase(
+        c.replaceDotsWithDashes(pkg),
+      )}Helper.get${capEntity}Entity(${listFull});\n\n`;
+
+      newCode += columns
+        .map(col => {
+          let s = '';
+          if (
+            col.column_name.toLowerCase() !== 'id' &&
+            !c.isIdForParent(col.column_name, parents).found &&
+            col.column_name.toLowerCase().indexOf('id') === -1 &&
+            !c.isAuditColumn(col.column_name)
+          ) {
+            s = `    ${camEntity}Entity.set${c.capitalCase(
+              col.column_name,
+            )}(request.get${c.capitalCase(col.column_name)}());`;
+            s += '\n';
+          }
+          return s;
+        })
+        .join('');
+
+      newCode += '\n';
+      newCode += `    ${camEntity}Repository.save(${camEntity}Entity);
+
+    return dozerMapper.convert(${camEntity}Entity, ${capEntity}.class);
+  }\n\n`;
+
+      //---------------------------------------
+      // DELETE ENTITY
+      //---------------------------------------
+      newCode += `  public void delete${capEntity}(\n${paramsFull}`;
+      newCode += `) {
+
+    ${capEntity}Entity ${camEntity}Entity = ${c.camelCase(
+        c.replaceDotsWithDashes(pkg),
+      )}Helper.get${capEntity}Entity(${listFull});
+    ${camEntity}Repository.delete(${camEntity}Entity);
+
+  }`;
+
+      newCode += `\n}`;
+      setCode(newCode);
+    }
+  });
+  return <CGenDisplay entity={entity} fileEnding="service" code={code} />;
+};
+
+export default CGenService;
+// prettier-ignore-end
+
+import React, { useEffect, useState } from 'react';
+import { CGenColumn, CGenParent } from './CGenTypes';
+import c from './CGenUtil';
+import Button from 'components/button/Button';
+import CGenDisplay from './CGenDisplay';
+
+const CGenServiceTest = ({
+  table,
+  entity,
+  columns,
+  rootApi,
+  api,
+  pkg,
+  parents,
+  uncles,
+  kids,
+  includedKids,
+  forCreate = false,
+}: {
+  table: string;
+  entity: string;
+  columns: CGenColumn[];
+  rootApi: string;
+  api: string;
+  pkg: string;
+  parents: string;
+  uncles: string;
+  kids: string;
+  includedKids: string;
+  forCreate?: boolean;
+}): JSX.Element => {
+  const [code, setCode] = useState('');
+
+  const camEntity = c.camelCase(entity);
+  const capEntity = c.capitalCase(entity);
+
+  let colAssign = ['', '', '']; // index 0 is not used
+  let colTuple = ['', '', '']; // index 0 is not used
+  let colList = '';
+  let requiredColSets = '';
+  let requiredColList = '"id"';
+  let requiredColChecks = '';
+
+  if (columns.length > 0) {
+    debugger;
+    columns.map(col => {
+      if (!c.isAuditColumn(col.column_name) && col.column_name !== 'id') {
+        let colParentFound = c.isIdForParent(col.column_name, parents);
+        let colUncleFound = c.isIdForParent(col.column_name, uncles);
+
+        if (colParentFound.found) {
+          //------------------------------------------------
+          // an id pointing to a parent
+          //------------------------------------------------
+        } else if (colUncleFound.found) {
+          //------------------------------------------------
+          // an id pointing to a foreign key
+          //------------------------------------------------
+        } else {
+          //------------------------------------------------
+          // a normal column
+          //------------------------------------------------
+          let colName = c.camelCase(col.column_name);
+          if (colList) {
+            colList += ', ';
+          }
+          colList += `"${colName}"`;
+
+          if (colTuple[1]) {
+            colTuple[1] += ', ';
+            colTuple[2] += ', ';
+          }
+          colTuple[1] += `${camEntity}Entity1.get${c.capitalCase(
+            col.column_name,
+          )}()`;
+          colTuple[2] += `${camEntity}Entity2.get${c.capitalCase(
+            col.column_name,
+          )}()`;
+
+          colAssign[1] += `                .${colName}(${c.getTestData(
+            col,
+            1,
+          )})\n`;
+          colAssign[2] += `                .${colName}(${c.getTestData(
+            col,
+            2,
+          )})\n`;
+        }
+
+        // now build the list of required column setters
+        if (
+          col.column_name.toLowerCase() !== 'id' &&
+          !c.isIdForParent(col.column_name, parents).found &&
+          (forCreate || col.column_name.toLowerCase().indexOf('id') === -1) &&
+          !c.isAuditColumn(col.column_name) &&
+          col.column_name !== 'tenant_id'
+        ) {
+          if (col.primary === 'YES' || col.is_nullable === 'NO') {
+            requiredColSets += `                .${
+              col.column_name
+            }(${c.getTestData(col, 1)})\n`;
+            requiredColList += `, "${col.column_name}"`;
+            requiredColChecks += `          assertThat(created${capEntity}.get${c.capitalCase(
+              col.column_name,
+            )}()).isNotNull();\n`;
+          }
+        }
+      }
+    });
+  }
+
+  colTuple[1] = `tuple(${camEntity}Id1, ${colTuple[1]}),`;
+  colTuple[2] = `tuple(${camEntity}Id2, ${colTuple[2]})`;
+
+  useEffect(() => {
+    let newCode = '';
+    if (columns && columns.length > 0) {
+      newCode = `package ${c.super_root()}${pkg}.service;
+
+import ${c.super_root()}.exceptions.ResourceNotFoundException;
+import ${c.super_root()}.mapper.DozerMapper;
+import ${c.super_root()}${pkg}.entity.*;
+import ${c.super_root()}${pkg}.model.*;
+import ${c.super_root()}${pkg}.repository.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.time.LocalDate;
+import java.time.OffsetTime;
+import java.util.ArrayList;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+public class ${capEntity}ServiceTest {
+
+    @InjectMocks
+    private ${capEntity}Service ${camEntity}Service;
+
+    @Mock
+    private ${capEntity}Repository ${camEntity}Repository;
+
+    @Spy
+    private DozerMapper dozerMapper;
+
+    @Test
+    public void get${capEntity}s_When${capEntity}sExists_ReturnListOf${capEntity}s() {\n\n`;
+
+      for (let idx = 1; idx <= 2; idx++) {
+        newCode +=
+          `        String ${camEntity}Id${idx} = UUID.randomUUID().toString();
+        ${capEntity}Entity ${camEntity}Entity${idx} = ${capEntity}Entity.builder()
+` +
+          colAssign[idx] +
+          `                .build();
+        ${camEntity}Entity${idx}.setId(${camEntity}Id${idx});\n\n`;
+      }
+
+      newCode += `
+        when(${camEntity}Repository.findAll()).thenReturn(List.of(
+            ${camEntity}Entity1, ${camEntity}Entity2
+        ));
+
+        List<${capEntity}> ${camEntity}sList = ${camEntity}Service.get${capEntity}s();
+
+        assertThat(${camEntity}sList).hasSize(2);
+        assertThat(${camEntity}sList).extracting("id", ${colList})
+                .containsExactly(
+                        ${colTuple[1]}
+                        ${colTuple[2]}
+                );
+    }          
+
+    @Test
+    public void get${capEntity}s_When${capEntity}sDontExists_ReturnEmptyListOf${capEntity}s() {
+        when(${camEntity}Repository.findAll()).thenReturn(Collections.emptyList());
+
+        List<${capEntity}> ${camEntity}sList = ${camEntity}Service.get${capEntity}s();
+
+        assertThat(${camEntity}sList).isEmpty();
+    }    
+
+    @Test
+    public void get${capEntity}ById_When${capEntity}Exists_Return${capEntity}() {
+
+        String ${camEntity}Id = UUID.randomUUID().toString();
+
+        ${capEntity}Entity ${camEntity}Entity = ${capEntity}Entity.builder()
+                ${colAssign[1]}.build();
+                ${camEntity}Entity.setId(${camEntity}Id);
+
+        when(${camEntity}Repository.findById(${camEntity}Id)).thenReturn(Optional.of(${camEntity}Entity));
+
+        ${capEntity} ${camEntity}ById = ${camEntity}Service.get${capEntity}(${camEntity}Id);
+
+        assertThat(${camEntity}ById.getId()).isEqualTo(${camEntity}Entity.getId());
+    }
+
+    @Test
+    public void get${capEntity}ById_When${capEntity}DoesNotExist_ThrowResourceNotFound() {
+        String ${camEntity}Id = UUID.randomUUID().toString();
+        when(${camEntity}Repository.findById(${camEntity}Id)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> ${camEntity}Service.get${capEntity}(${camEntity}Id))
+                .isExactlyInstanceOf(ResourceNotFoundException.class)
+                .extracting("resourceType", "resourceId")
+                .containsExactly(ResourceNotFoundException.ResourceType.${capEntity.toUpperCase()}, ${camEntity}Id);
+    }\n\n`;
+
+      if (parents) {
+        newCode += `    @Test
+    public void create${capEntity}_givenParentsExist_returnCreated${capEntity}() {
+        // GIVEN: parents exist
+        String generated${capEntity}Id = UUID.randomUUID().toString();
+        ${capEntity} expected${capEntity} = ${capEntity}.builder()
+                .id(generated${capEntity}Id)
+${colAssign[1]}                .build();\n\n`;
+
+        let restOfParents = parents.split(',');
+        let firstParent = String(restOfParents.shift());
+        let firstPte = c.splitPackageTableEntity(firstParent);
+
+        // NOW CREATE INTERMEDIARY PARENTS
+        restOfParents = restOfParents.reverse();
+        let prevParent: CGenParent | undefined;
+        if (restOfParents) {
+          newCode += restOfParents
+            .map(parent => {
+              let s = '';
+              let pte = c.splitPackageTableEntity(parent);
+              s += `        String generated${pte.capEntity}Id = UUID.randomUUID().toString();
+        ${pte.capEntity}Entity ${pte.camEntity}Entity = ${pte.capEntity}Entity.builder()
+                .id(generated${pte.capEntity}Id)\n`;
+              if (prevParent) {
+                // previous parent exists, so put it in as a child
+                s += `                .${prevParent.camEntity}s(singletonList(${prevParent.camEntity}Entity))\n`;
+              } else {
+                // first one, so use our main entity as a child
+                s += `                .${camEntity}s(singletonList(${camEntity}Entity))\n`;
+              }
+              s += `                .build();
+        ${pte.camEntity}Entity.setId(generated${pte.capEntity}Id);`;
+              prevParent = pte;
+              return s;
+            })
+            .join('');
+        }
+
+        //CREATE FIRST PARENT
+        newCode += '\n\n';
+        newCode += `        String generated${firstPte.capEntity}Id = UUID.randomUUID().toString();
+        ${firstPte.capEntity}Entity ${firstPte.camEntity}Entity = ${firstPte.capEntity}Entity.builder()
+                .id(generated${firstPte.capEntity}Id)\n`;
+        if (prevParent) {
+          newCode += `                .${prevParent.camEntity}s(singletonList(${prevParent.camEntity}Entity))\n`;
+        } else {
+          newCode += `                .${camEntity}s(singletonList(${camEntity}Entity))\n`;
+        }
+        newCode += `                .build();
+
+        when(${firstPte.camEntity}Repository.findById(generated${firstPte.capEntity}Id)).thenReturn(Optional.of(${firstPte.camEntity}Entity));
+        when(${firstPte.camEntity}Repository.save(any(${firstPte.capEntity}Entity.class))).thenAnswer(invocation -> {
+            ${capEntity}Entity ${camEntity}Entity = ${firstPte.camEntity}Entity`;
+
+        // now get the rest of the parents in a chain until we can get the entity we are testing
+        newCode += restOfParents
+          .map(parent => {
+            let pte = c.splitPackageTableEntity(parent);
+            return `.get${pte.capEntity}s().get(0)`;
+          })
+          .join('');
+
+        newCode += `.get${capEntity}s().get(0);
+            ${camEntity}Entity.setId(generated${capEntity}Id);
+            return ${firstPte.camEntity}Entity;
+        });\n\n`;
+
+        // get a list of our generated parent ids
+        let parentIds = '';
+        if (parents) {
+          parents
+            .split(',')
+            .map(parent => {
+              let pte = c.splitPackageTableEntity(parent);
+              parentIds += `generated${pte.capEntity}Id, `;
+            })
+            .join('');
+        }
+
+        newCode += `        when(${camEntity}Repository.save(any(${capEntity}Entity.class))).thenReturn(${camEntity}Entity);\n\n`;
+
+        // now run the test
+        newCode += `        ${capEntity}CreateRequest ${camEntity}CreateRequest = ${capEntity}CreateRequest.builder()
+${requiredColSets}                .build();
+        // WHEN: create ${camEntity} request
+        ${capEntity} created${capEntity} = ${camEntity}Service.create${capEntity}(${parentIds}create${capEntity}Request);
+
+        // THEN: return created ${camEntity}
+        assertThat(created${capEntity}).isEqualToComparingOnlyGivenFields(expected${capEntity}, ${requiredColList});
+    }
+
+    @Test
+    public void create${capEntity}_givenPerentsDoNotExist_throwResourceNotFoundException() {
+        // GIVEN: creating a ${camEntity} with parent(s)
+        // WHEN: the parent(s) do not exist
+        when(${
+          firstPte.camEntity
+        }Repository.findById("1")).thenReturn(Optional.empty());
+        ${capEntity}CreateRequest ${camEntity}CreateRequest = ${capEntity}CreateRequest.builder()
+                .id("2")
+                .build();
+
+        // THEN: throw error
+        assertThatThrownBy(() -> ${
+          firstPte.camEntity
+        }Service.create${capEntity}("1", ${camEntity}CreateRequest))
+                .isExactlyInstanceOf(ResourceNotFoundException.class)
+                .extracting("resourceType", "resourceId").containsExactly(ResourceType.${firstPte.camEntity.toUpperCase()}, "1");
+    }
+
+}`;
+      } else if (uncles) {
+        // since there are no parents, but only foreign keys, lets test it this way
+
+        // NOW CREATE FOREIGN KEY
+        let declares = '';
+        let checks = '';
+        uncles.split(',').map(uncle => {
+          let pte = c.splitPackageTableEntity(uncle);
+          declares += `            String generated${pte.capEntity}Id = UUID.randomUUID().toString();
+            {pte.capEntity}Entity ${pte.camEntity}Entity = {pte.capEntity}Entity.builder()
+                    .${pte.camEntity}Id(generated${pte.capEntity}Id)
+                    .build();        
+            when(${pte.camEntity}Repository.findById(generated${pte.capEntity}Id)).thenReturn(Optional.of(${pte.camEntity}Entity));\n\n`;
+
+          checks += `        assertThat(created${capEntity}.get${pte.capEntity}()).isNotNull();
+            assertThat(created${capEntity}.get${pte.capEntity}().getId()).isEqualTo(generated${pte.capEntity}Id);\n\n`;
+        });
+
+        newCode += `    @Test
+        public void create${capEntity}_givenValidForeignKeys_returnsNew${capEntity}() {
+            String customerId = "12345";
+            ${capEntity}.Status status = ${capEntity}.Status.DRAFT;
+    
+${declares}
+    
+            String generated${capEntity}Id = UUID.randomUUID().toString();
+
+            ${capEntity}Entity ${camEntity}Entity = ${capEntity}Entity.builder()
+${colAssign[1]}                .build();
+            ${camEntity}Entity.setId(generated${capEntity}Id);
+   
+            when(${camEntity}Repository.save(any(${capEntity}Entity.class))).thenReturn(${camEntity}Entity);
+    
+            // GIVEN: valid foreign keys
+            // WHEN: create${capEntity} is called
+            ${capEntity} created${capEntity} = ${camEntity}Service.create${capEntity}(status, customerId);
+    
+            // THEN:
+            assertThat(created${capEntity}.getId()).isNotNull();
+            assertThat(created${capEntity}.getCreatedDate()).isNotNull();
+
+${requiredColChecks}
+
+${checks}            
+        }\n`;
+      }
+    }
+    setCode(newCode);
+  });
+  return <CGenDisplay entity={entity} fileEnding="service_test" code={code} />;
+};
+
+export default CGenServiceTest;
+
+// @Test
+// public void createOrder_givenInvalidCustomer_throwsResourceNotFoundException() {
+//     // GIVEN: customer does not exist
+//     when(customerRepository.findById("1234")).thenReturn(Optional.empty());
+
+//     // WHEN: create order
+//     // THEN: CustomerNotFoundException thrown
+//     assertThatThrownBy(() -> orderService.createOrder(Order.Status.DRAFT, "1234"))
+//             .isExactlyInstanceOf(ResourceNotFoundException.class)
+//             .extracting("resourceType", "resourceId").containsExactly(ResourceType.CUSTOMER, "1234");
+// }\n\n`;
+// //}
+
+export interface CGenColumn {
+  table_catalog: string;
+  table_name: string;
+  column_name: string;
+  ordinal_position: string;
+  is_nullable: string;
+  column_default: string;
+  udt_name: string;
+  character_maximum_length: string;
+  is_identity: string;
+  primary: string;
+}
+
+export interface CGenParent {
+  basepkg: string;
+  table: string;
+  entity: string;
+  camEntity: string;
+  capEntity: string;
+}
+
+import React, { useEffect, useState } from 'react';
+import { CGenColumn } from './CGenTypes';
+import c from './CGenUtil';
+import Button from 'components/button/Button';
+import CGenDisplay from './CGenDisplay';
+
+const CGenUpdateRequest = ({
+  table,
+  entity,
+  columns,
+  rootApi,
+  api,
+  pkg,
+  parents,
+  uncles,
+  kids,
+  includedKids,
+  forCreate = false,
+}: {
+  table: string;
+  entity: string;
+  columns: CGenColumn[];
+  rootApi: string;
+  api: string;
+  pkg: string;
+  parents: string;
+  uncles: string;
+  kids: string;
+  includedKids: string;
+  forCreate?: boolean;
+}): JSX.Element => {
+  const [code, setCode] = useState('');
+
+  const camEntity = c.camelCase(entity);
+  const capEntity = c.capitalCase(entity);
+
+  useEffect(() => {
+    let newCode = '';
+    if (columns && columns.length > 0) {
+      newCode = `package ${c.super_root()}${pkg}.model;
+
+import ${c.super_root()}.annotations.CheckEnum;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.time.OffsetTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ${capEntity}${forCreate ? 'Create' : 'Update'}Request {
+`;
+      newCode += columns
+        .map(col => {
+          let s = '';
+          //debugger;
+          if (
+            col.column_name.toLowerCase() !== 'id' &&
+            !c.isIdForParent(col.column_name, parents).found &&
+            (forCreate || col.column_name.toLowerCase().indexOf('id') === -1) &&
+            !c.isAuditColumn(col.column_name) &&
+            col.column_name !== 'tenant_id'
+          ) {
+            if (col.primary === 'YES' || col.is_nullable === 'NO') {
+              s = `${c.getNotEmptyText(col, true)}  private ${c.getColumnType(
+                col.udt_name,
+                col.column_name,
+              )} ${c.camelCase(col.column_name)};`;
+            } else {
+              s = `  private ${c.getColumnType(
+                col.udt_name,
+                col.column_name,
+              )} ${c.camelCase(col.column_name)};`;
+            }
+            s += '\n';
+            return s;
+          }
+        })
+        .join('');
+
+      newCode += `}`;
+    }
+    setCode(newCode);
+  });
+  return (
+    <CGenDisplay
+      entity={entity}
+      fileEnding={forCreate ? 'create_request' : 'update_request'}
+      code={code}
+    />
+  );
+};
+
+export default CGenUpdateRequest;
+
+import { isStringTypeAnnotation } from '@babel/types';
+import { CGenColumn, CGenParent } from './CGenTypes';
+import { saveAs } from './FileSaver';
+
+const c = {
+  super_root(): string {
+    return 'com.test.software';
+  },
+
+  camelCase(inVal: string): string {
+    let s = '';
+    if (inVal) {
+      let vals = inVal.split('_');
+      vals.map((v, idx) => {
+        if (idx === 0) {
+          s += v.toLowerCase();
+        } else {
+          s += v.substr(0, 1).toUpperCase() + v.substr(1).toLowerCase();
+        }
+      });
+    }
+    return s;
+  },
+
+  capitalCase(inVal: string): string {
+    let s = '';
+    if (inVal) {
+      let vals = inVal.split('_');
+      vals.map((v, idx) => {
+        s += v.substr(0, 1).toUpperCase() + v.substr(1).toLowerCase();
+      });
+    }
+    return s;
+  },
+
+  humanCase(inVal: string): string {
+    let s = '';
+    if (inVal) {
+      let vals = inVal.split('_');
+      vals.map((v, idx) => {
+        if (s) {
+          s += ' ';
+        }
+        s += v.substr(0, 1).toUpperCase() + v.substr(1).toLowerCase();
+      });
+    }
+    return s;
+  },
+
+  replaceDotsWithDashes(inVal: string): string {
+    return inVal.replace('.', '_');
+  },
+
+  getColumnType(coltype: string, colname: string): string {
+    if (coltype === 'varchar') {
+      return 'String';
+    } else if (coltype === 'int4') {
+      return 'Long';
+    } else if (coltype === 'int8') {
+      return 'Long';
+    } else if (coltype === 'timestamptz') {
+      return 'String';
+    } else if (coltype === 'date') {
+      return 'LocalDate';
+    } else if (coltype === 'time') {
+      return 'OffsetTime';
+    } else if (coltype === 'numeric') {
+      if (colname.toLowerCase().indexOf('cents') >= 0) {
+        return 'BigInteger';
+      } else if (
+        colname.toLowerCase().indexOf('price') >= 0 ||
+        colname.toLowerCase().indexOf('cost') >= 0
+      ) {
+        return 'BigDecimal';
+      } else {
+        return 'Integer';
+      }
+    } else {
+      return 'String';
+    }
+  },
+
+  getNotEmptyText(col: CGenColumn, withMessage: boolean): string {
+    if (
+      col.is_nullable === 'NO' ||
+      col.primary === 'YES' ||
+      col.column_name === 'tenant_id'
+    ) {
+      if (col.udt_name === 'varchar') {
+        if (withMessage) {
+          return (
+            `  @NotEmpty(message = "The ${c.humanCase(
+              col.column_name,
+            )} for this ${c.humanCase(
+              col.table_name,
+            )} cannot be null or empty.")` + '\n'
+          );
+        } else {
+          return `  @NotEmpty` + '\n';
+        }
+      } else {
+        if (withMessage) {
+          return (
+            `  @NotNull(message = "The ${c.humanCase(
+              col.column_name,
+            )} for this ${c.humanCase(col.table_name)} cannot be null.")` + '\n'
+          );
+        } else {
+          return `  @NotNull` + '\n';
+        }
+      }
+    } else {
+      // not nullable
+      return '';
+    }
+  },
+
+  isAuditColumn(colname: string): boolean {
+    if (colname === 'created_by') {
+      return true;
+    } else if (colname === 'created_by') {
+      return true;
+    } else if (colname === 'created_date') {
+      return true;
+    } else if (colname === 'updated_by') {
+      return true;
+    } else if (colname === 'updated_date') {
+      return true;
+    } else if (colname === 'version') {
+      return true;
+    } else {
+      return false;
+    }
+  },
+
+  isIdForParent(
+    colname: string,
+    parents: string,
+  ): { found: boolean; parent: string } {
+    let ans = { found: false, parent: '' };
+    if (colname.toLowerCase().indexOf('id') >= 0) {
+      // an id column
+      if (parents) {
+        let parentarray: string[] = parents.split(',');
+        parentarray.forEach(parent => {
+          if (parent.indexOf('.') >= 0) {
+            let pte = c.splitPackageTableEntity(parent);
+            if (colname.toLowerCase().indexOf(pte.table.toLowerCase()) >= 0) {
+              ans.found = true;
+              ans.parent = parent;
+            } else if (
+              colname.toLowerCase().indexOf(pte.entity.toLowerCase()) >= 0
+            ) {
+              ans.found = true;
+              ans.parent = parent;
+            }
+          }
+        });
+      }
+    }
+    return ans;
+  },
+
+  splitPackageTableEntity(it: string): CGenParent {
+    let ans: CGenParent = {
+      basepkg: '',
+      table: '',
+      entity: '',
+      camEntity: '',
+      capEntity: '',
+    };
+    if (it) {
+      let pkgArray = it.split('@');
+      ans.basepkg = pkgArray[0];
+      if (pkgArray[1]) {
+        let itArray = pkgArray[1].split('.');
+        ans.table = itArray[0];
+        ans.entity = itArray[1];
+        if (!ans.entity) {
+          ans.entity = ans.table;
+        }
+        ans.camEntity = this.camelCase(ans.entity);
+        ans.capEntity = this.capitalCase(ans.entity);
+      }
+    }
+    return ans;
+  },
+
+  getTestData(col: CGenColumn, index: number) {
+    switch (c.getColumnType(col.udt_name, col.column_name)) {
+      case 'Long':
+        return (11111 * index).toString();
+      case 'BigInteger':
+        return (11111 * index).toString();
+      case 'Integer':
+        return (11111 * index).toString();
+      case 'BigDecimal':
+        return `BigDecimal.valueOf(` + (11111.11 * index).toString() + `)`;
+      case 'OffsetTime':
+        return `OffsetTime.now()`;
+      case 'LocalDate':
+        return `LocalDate.now()`;
+      default:
+        // string
+        return `"` + index.toString() + `ZZZZZZZZZZZZZZZZZZZZ"`;
+    }
+  },
+
+  saveFile(fileName: string, content: string): void {
+    if (content) {
+      var blob = new Blob([content], {
+        type: 'text/plain;charset=utf-8',
+      });
+      saveAs(blob, fileName);
+    }
+  },
+};
+export default c;
+
+/* eslint-disable no-console */
+/*
+ * FileSaver.js
+ * A saveAs() FileSaver implementation.
+ *
+ * By Eli Grey, http://eligrey.com
+ *
+ * License : https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md (MIT)
+ * source  : http://purl.eligrey.com/github/FileSaver.js
+ */
+
+// The one and only way of getting global scope in all environments
+// https://stackoverflow.com/q/3277182/1008999
+var _global =
+  typeof window === 'object' && window.window === window
+    ? window
+    : typeof window.self === 'object' && window.self.self === window.self // eslint-disable-next-line no-restricted-globals
+    ? window.self
+    : typeof global === 'object' && global.global === global
+    ? global
+    : this;
+
+function bom(blob, opts) {
+  if (typeof opts === 'undefined') opts = { autoBom: false };
+  else if (typeof opts !== 'object') {
+    //console.warn('Deprecated: Expected third argument to be a object');
+    opts = { autoBom: !opts };
+  }
+
+  // prepend BOM for UTF-8 XML and text/* types (including HTML)
+  // note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+  if (
+    opts.autoBom &&
+    /^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(
+      blob.type,
+    )
+  ) {
+    return new Blob([String.fromCharCode(0xfeff), blob], { type: blob.type });
+  }
+  return blob;
+}
+
+function corsEnabled(url) {
+  var xhr = new XMLHttpRequest();
+  // use sync to avoid popup blocker
+  xhr.open('HEAD', url, false);
+  try {
+    xhr.send();
+  } catch (e) {}
+  return xhr.status >= 200 && xhr.status <= 299;
+}
+
+// `a.click()` doesn't work for all browsers (#465)
+function click(node) {
+  try {
+    node.dispatchEvent(new MouseEvent('click'));
+  } catch (e) {
+    var evt = document.createEvent('MouseEvents');
+    evt.initMouseEvent(
+      'click',
+      true,
+      true,
+      window,
+      0,
+      0,
+      0,
+      80,
+      20,
+      false,
+      false,
+      false,
+      false,
+      0,
+      null,
+    );
+    node.dispatchEvent(evt);
+  }
+}
+
+export var saveAs =
+  _global.saveAs ||
+  // probably in some web worker
+  (typeof window !== 'object' || window !== _global
+    ? function saveAs() {
+        /* noop */
+      }
+    : // Use download attribute first if possible (#193 Lumia mobile)
+    'download' in HTMLAnchorElement.prototype
+    ? function saveAs(blob, name, opts) {
+        var URL = _global.URL || _global.webkitURL;
+        var a = document.createElement('a');
+        name = name || blob.name || 'download';
+
+        a.download = name;
+        a.rel = 'noopener'; // tabnabbing
+
+        // TODO: detect chrome extensions & packaged apps
+        // a.target = '_blank'
+
+        if (typeof blob === 'string') {
+          // Support regular links
+          a.href = blob;
+          if (a.origin !== window.location.origin) {
+            corsEnabled(a.href)
+              ? download(blob, name, opts)
+              : click(a, (a.target = '_blank'));
+          } else {
+            click(a);
+          }
+        } else {
+          // Support blobs
+          a.href = URL.createObjectURL(blob);
+          setTimeout(function() {
+            URL.revokeObjectURL(a.href);
+          }, 4e4); // 40s
+          setTimeout(function() {
+            click(a);
+          }, 0);
+        }
+      }
+    : // Use msSaveOrOpenBlob as a second approach
+    'msSaveOrOpenBlob' in navigator
+    ? function saveAs(blob, name, opts) {
+        name = name || blob.name || 'download';
+
+        if (typeof blob === 'string') {
+          if (corsEnabled(blob)) {
+            download(blob, name, opts);
+          } else {
+            var a = document.createElement('a');
+            a.href = blob;
+            a.target = '_blank';
+            setTimeout(function() {
+              click(a);
+            });
+          }
+        } else {
+          navigator.msSaveOrOpenBlob(bom(blob, opts), name);
+        }
+      }
+    : // Fallback to using FileReader and a popup
+      function saveAs(blob, name, opts, popup) {
+        // Open a popup immediately do go around popup blocker
+        // Mostly only available on user interaction and the fileReader is async so...
+        // eslint-disable-next-line no-restricted-globals
+        popup = popup || open('', '_blank');
+        if (popup) {
+          popup.document.title = popup.document.body.innerText =
+            'downloading...';
+        }
+
+        if (typeof blob === 'string') return download(blob, name, opts);
+
+        var force = blob.type === 'application/octet-stream';
+        var isSafari =
+          /constructor/i.test(_global.HTMLElement) || _global.safari;
+        var isChromeIOS = /CriOS\/[\d]+/.test(navigator.userAgent);
+
+        if (
+          (isChromeIOS || (force && isSafari)) &&
+          typeof FileReader !== 'undefined'
+        ) {
+          // Safari doesn't allow downloading of blob URLs
+          var reader = new FileReader();
+          reader.onloadend = function() {
+            var url = reader.result;
+            url = isChromeIOS
+              ? url
+              : url.replace(/^data:[^;]*;/, 'data:attachment/file;');
+            if (popup) popup.location.href = url;
+            else window.location = url;
+            popup = null; // reverse-tabnabbing #460
+          };
+          reader.readAsDataURL(blob);
+        } else {
+          var URL = _global.URL || _global.webkitURL;
+          var url = URL.createObjectURL(blob);
+          if (popup) popup.location = url;
+          else window.location.href = url;
+          popup = null; // reverse-tabnabbing #460
+          setTimeout(function() {
+            URL.revokeObjectURL(url);
+          }, 4e4); // 40s
+        }
+      });
+
+_global.saveAs = saveAs.saveAs = saveAs;
+
+function download(url, name, opts) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url);
+  xhr.responseType = 'blob';
+  xhr.onload = function() {
+    saveAs(xhr.response, name, opts);
+  };
+  xhr.onerror = function() {
+    //console.error('could not download file');
+  };
+  xhr.send();
+}
+
+// if (typeof module !== 'undefined') {
+//   module.exports = saveAs;
+// }
+
+
+---server.js
+var express = require("express"),
+  app = express(),
+  port = 3333, //process.env.PORT || 3333,
+  //Task = require('./api/models/todoListModel'), //created model loading here
+  bodyParser = require("body-parser");
+
+// app.listen(port);
+
+// postgres access here
+// mongoose.Promise = global.Promise;
+// mongoose.connect('mongodb://localhost/Tododb');
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+var routes = require("./api/routes/cgenRoutes"); //importing route
+routes(app); //register the route
+
+app.listen(port);
+
+console.log("todo list RESTful API server started on: " + port);
+
+
+--serviceWorker.ts
+// This optional code is used to register a service worker.
+// register() is not called by default.
+
+// This lets the app load faster on subsequent visits in production, and gives
+// it offline capabilities. However, it also means that developers (and users)
+// will only see deployed updates on subsequent visits to a page, after all the
+// existing tabs open on the page have been closed, since previously cached
+// resources are updated in the background.
+
+// To learn more about the benefits of this model and instructions on how to
+// opt-in, read https://bit.ly/CRA-PWA
+
+const isLocalhost = Boolean(
+  window.location.hostname === 'localhost' ||
+    // [::1] is the IPv6 localhost address.
+    window.location.hostname === '[::1]' ||
+    // 127.0.0.1/8 is considered localhost for IPv4.
+    window.location.hostname.match(
+      /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+    )
+);
+
+type Config = {
+  onSuccess?: (registration: ServiceWorkerRegistration) => void;
+  onUpdate?: (registration: ServiceWorkerRegistration) => void;
+};
+
+export function register(config?: Config) {
+  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+    // The URL constructor is available in all browsers that support SW.
+    const publicUrl = new URL(
+      (process as { env: { [key: string]: string } }).env.PUBLIC_URL,
+      window.location.href
+    );
+    if (publicUrl.origin !== window.location.origin) {
+      // Our service worker won't work if PUBLIC_URL is on a different origin
+      // from what our page is served on. This might happen if a CDN is used to
+      // serve assets; see https://github.com/facebook/create-react-app/issues/2374
+      return;
+    }
+
+    window.addEventListener('load', () => {
+      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
+
+      if (isLocalhost) {
+        // This is running on localhost. Let's check if a service worker still exists or not.
+        checkValidServiceWorker(swUrl, config);
+
+        // Add some additional logging to localhost, pointing developers to the
+        // service worker/PWA documentation.
+        navigator.serviceWorker.ready.then(() => {
+          console.log(
+            'This web app is being served cache-first by a service ' +
+              'worker. To learn more, visit https://bit.ly/CRA-PWA'
+          );
+        });
+      } else {
+        // Is not localhost. Just register service worker
+        registerValidSW(swUrl, config);
+      }
+    });
+  }
+}
+
+function registerValidSW(swUrl: string, config?: Config) {
+  navigator.serviceWorker
+    .register(swUrl)
+    .then(registration => {
+      registration.onupdatefound = () => {
+        const installingWorker = registration.installing;
+        if (installingWorker == null) {
+          return;
+        }
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === 'installed') {
+            if (navigator.serviceWorker.controller) {
+              // At this point, the updated precached content has been fetched,
+              // but the previous service worker will still serve the older
+              // content until all client tabs are closed.
+              console.log(
+                'New content is available and will be used when all ' +
+                  'tabs for this page are closed. See https://bit.ly/CRA-PWA.'
+              );
+
+              // Execute callback
+              if (config && config.onUpdate) {
+                config.onUpdate(registration);
+              }
+            } else {
+              // At this point, everything has been precached.
+              // It's the perfect time to display a
+              // "Content is cached for offline use." message.
+              console.log('Content is cached for offline use.');
+
+              // Execute callback
+              if (config && config.onSuccess) {
+                config.onSuccess(registration);
+              }
+            }
+          }
+        };
+      };
+    })
+    .catch(error => {
+      console.error('Error during service worker registration:', error);
+    });
+}
+
+function checkValidServiceWorker(swUrl: string, config?: Config) {
+  // Check if the service worker can be found. If it can't reload the page.
+  fetch(swUrl)
+    .then(response => {
+      // Ensure service worker exists, and that we really are getting a JS file.
+      const contentType = response.headers.get('content-type');
+      if (
+        response.status === 404 ||
+        (contentType != null && contentType.indexOf('javascript') === -1)
+      ) {
+        // No service worker found. Probably a different app. Reload the page.
+        navigator.serviceWorker.ready.then(registration => {
+          registration.unregister().then(() => {
+            window.location.reload();
+          });
+        });
+      } else {
+        // Service worker found. Proceed as normal.
+        registerValidSW(swUrl, config);
+      }
+    })
+    .catch(() => {
+      console.log(
+        'No internet connection found. App is running in offline mode.'
+      );
+    });
+}
+
+export function unregister() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(registration => {
+      registration.unregister();
+    });
+  }
+}
+
+
+--nodemon.json
+{
+  "verbose": true,
+  "ignore": ["*.test.js"],
+  "watch": ["*.js"],
+  "delay": "2500ms"
+}
+
+
+--scripts
+  "scripts": {
+    "react": "react-scripts start",
+    "server": "nodemon src/server.js",
+    "start": "run-p server react",
+    "startboth": "run-p server react",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "lint": "eslint './src/**/*.{ts,tsx}'",
+    "commit-ready": "yarn lint"
+  },
+  
+  
+--api/controllers/cgenController.js
+var util = require('util');
+
+exports.get_columns = function(req, res) {
+  if (req.query.table && req.query.connect) {
+    //console.log("FOUND TABLE: " + req.query.table + "\n\n");
+
+    const { Pool, Client } = require('pg');
+
+    let connect = req.query.connect; //postgres:postpost@localhost:5432/convergeplanningdb
+    let a1 = connect.split('@');
+    let a1a = a1[0].split(':');
+    let a1b = a1[1].split('/');
+    let a1b1 = a1b[0].split(':');
+    let user = a1a[0];
+    let pword = a1a[1];
+    let host = a1b1[0];
+    let port = a1b1[1];
+    let db = a1b[1];
+    console.log(connect) + '\n';
+    console.log(user) + '\n';
+    console.log(pword) + '\n';
+    console.log(host) + '\n';
+    console.log(port) + '\n';
+    console.log(db) + '\n';
+
+    debugger;
+
+    const pool = new Pool({
+      user: user,
+      password: pword,
+      host: host,
+      port: port,
+      database: db,
+      //curentSchema: 'offerboard',
+      //schema: 'offerboard',
+    });
+
+    //const client = new Client();
+    //client.connect();
+    //client.query("SELECT $1::text as message", ["Hello world!"], (err, res) => {
+    // let sql =
+    //   "SELECT c.table_catalog, c.table_name, c.column_name, c.ordinal_position, c.is_nullable, c.column_default, c.udt_name, c.character_maximum_length, c.is_identity, (SELECT (case when count(*) = 1 then 'YES' else 'NO' end) as primary " +
+    //   "FROM information_schema.table_constraints t, information_schema.key_column_usage k " +
+    //   "WHERE t.table_name = '" +
+    //   req.query.table +
+    //   "' and t.constraint_type='PRIMARY KEY' " +
+    //   "  and k.table_name = '" +
+    //   req.query.table +
+    //   "' and k.constraint_name=t.constraint_name " +
+    //   "  and k.column_name = c.column_name) as primary " +
+    //   "FROM information_schema.columns c WHERE table_schema = 'public' AND table_name = '" +
+    //   req.query.table +
+    //   "'";
+
+    //"SELECT name from plan_job"
+
+    let sql =
+      "SELECT c.table_catalog, c.table_name, c.column_name, c.ordinal_position, c.is_nullable, c.column_default, c.udt_name, c.character_maximum_length, c.is_identity, (SELECT (case when count(*) = 1 then 'YES' else 'NO' end) as primary " +
+      'FROM information_schema.table_constraints t, information_schema.key_column_usage k ' +
+      "WHERE t.table_name = $1 and t.constraint_type='PRIMARY KEY' " +
+      '  and k.table_name = $1 and k.constraint_name=t.constraint_name ' +
+      '  and k.column_name = c.column_name) as primary ' +
+      'FROM information_schema.columns c WHERE table_name = $1 '; //AND table_schema = 'offerboard'
+
+    // let sql =
+    //   "SELECT c.table_catalog, c.table_name, c.column_name, c.ordinal_position, c.is_nullable, c.column_default, c.udt_name, c.character_maximum_length, c.is_identity, (SELECT (case when count(*) = 1 then 'YES' else 'NO' end) as primary " +
+    //   'FROM information_schema.table_constraints t, information_schema.key_column_usage k ' +
+    //   "WHERE t.table_name = $1 and t.constraint_type='PRIMARY KEY' " +
+    //   '  and k.table_name = $1 and k.constraint_name=t.constraint_name ' +
+    //   '  and k.column_name = c.column_name) as primary ' +
+    //   'FROM information_schema.columns c '; // WHERE table_name = $1'; // AND table_schema = 'offerboard'
+
+    pool.query(sql, [req.query.table], (err, data) => {
+      if (err) {
+        res.send(err);
+      } else {
+        //console.log("GOT DATA: " + data.rows[0].column_name + "\n\n");
+        let responseData = data.rows;
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+        res.setHeader(
+          'Access-Control-Allow-Headers',
+          'Content-Type, Accept, X-Requested-With, remember-me',
+        );
+        res.setHeader('Vary', 'Origin');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET');
+        //res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        res.setHeader('Referrer-Policy', 'unsafe-url'); // "strict-origin-when-cross-origin""
+        res.json(responseData);
+      }
+      pool.end();
+    });
+  }
+  //console.log("GOT HERE!" + util.inspect(req));
+
+  // Task.find({}, function(err, task) {
+  //   if (err)
+  //     res.send(err);
+  //   res.json(task);
+  // });
+};
+
+
+--api/routes/cgenRoutes.js
+module.exports = function(app) {
+    var cgenController = require('../controllers/cgenController');
+  
+    // todoList Routes
+    app.route('/api/cgen')
+      .get(cgenController.get_columns)
+ 
+  };
+

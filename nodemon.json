@@ -1,0 +1,6 @@
+{
+  "verbose": true,
+  "ignore": ["*.test.js"],
+  "watch": ["*.js"],
+  "delay": "2500ms"
+}
