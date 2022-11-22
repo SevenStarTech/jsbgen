@@ -258,7 +258,11 @@ const CGen = (): JSX.Element => {
   }, [setIdx]);
 
   useEffect(() => {
-    setConnect(connects[connectIdx][1]);
+    const connectStr = connects[connectIdx][1]
+    setConnect(connectStr);
+    setConnectUser(getConnectUser(connectStr));
+    setConnectPassword(getConnectPassword(connectStr));
+    setConnectServer(getConnectServer(connectStr));      
   }, [connectIdx]);
 
   // useEffect(() => {
@@ -302,7 +306,7 @@ const CGen = (): JSX.Element => {
               if (selection) {
                 let sel = selection as SelectOptions;
                 if (sel.value) {
-                  setConnectIdx(parseInt(sel.value));
+                  setConnectIdx(parseInt(sel.value));             
                 }
               }
             }}
@@ -322,7 +326,7 @@ const CGen = (): JSX.Element => {
           />                    
           <TitledInput
             width="100%"
-            title="SERVER:PORT/DB"
+            title="HOST:PORT/DB"
             text={connectServer}
             onChange={setConnectServer}
           />
