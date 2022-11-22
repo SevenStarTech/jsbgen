@@ -31,7 +31,7 @@ const CGenDisplay = ({
       <textarea
         value={code}
         spellCheck={false}
-        className={short ? 'short' : ''}
+        className={`code ${short ? 'short' : ''}`}
       />
     </>
   );

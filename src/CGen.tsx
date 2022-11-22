@@ -282,7 +282,6 @@ const CGen = (): JSX.Element => {
             // className={styles[`select-filter`]}
             value={ddConnects[connectIdx]}
             onChange={selection => {
-              debugger;
               if (selection) {
                 let sel = selection as SelectOptions;
                 if (sel.value) {
@@ -356,24 +355,28 @@ const CGen = (): JSX.Element => {
             title="Parent(s) :: BASEPKG@TABLE{.ENTITY}..."
             text={parents}
             onChange={setParents}
+            rows={3}
           />
           <TitledInput
             width="100%"
             title="Foreign Key(s) :: BASEPKG@TABLE{.ENTITY}..."
             text={uncles}
             onChange={setUncles}
+            rows={3}
           />
           <TitledInput
             width="100%"
             title="Children :: BASEPKG@TABLE{.ENTITY}..."
             text={kids}
             onChange={setKids}
+            rows={3}
           />
           <TitledInput
             width="100%"
             title="Response Children :: BASEPKG@TABLE{.ENTITY}..."
             text={includedKids}
             onChange={setIncludedKids}
+            rows={3}
           />
         </div>
       }

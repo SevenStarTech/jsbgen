@@ -59,7 +59,6 @@ public class ${capEntity}${forCreate ? 'Create' : 'Update'}Request {
       newCode += columns
         .map(col => {
           let s = '';
-          //debugger;
           if (
             col.column_name.toLowerCase() !== 'id' &&
             !c.isIdForParent(col.column_name, parents).found &&

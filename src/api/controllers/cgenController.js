@@ -23,8 +23,6 @@ exports.get_columns = function(req, res) {
     // console.log(port) + '\n';
     // console.log(db) + '\n';
 
-    debugger;
-
     const pool = new Pool({
       user: user,
       password: pword,

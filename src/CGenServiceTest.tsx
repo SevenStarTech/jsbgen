@@ -44,7 +44,6 @@ const CGenServiceTest = ({
   let requiredColChecks = '';
 
   if (columns.length > 0) {
-    debugger;
     columns.map(col => {
       if (!c.isAuditColumn(col.column_name) && col.column_name !== 'id') {
         let colParentFound = c.isIdForParent(col.column_name, parents);
