@@ -13,3 +13,13 @@ The architecture is somewhat flexible in that you can add more components that c
 
 To run the code, either install a local Postgres server or have the connect information for one on another server, then type `npm run start` at the command prompt and this will start both the React app as well as the Node.js server.
 
+For testing purposes, you can use the following sample dvd rental database:
+
+[https://www.postgresqltutorial.com/postgresql-getting-started/postgresql-sample-database/](https://www.postgresqltutorial.com/postgresql-getting-started/postgresql-sample-database/)
+
+The database diagram for this db can be found here:
+
+[https://www.postgresqltutorial.com/wp-content/uploads/2018/03/printable-postgresql-sample-database-diagram.pdf](https://www.postgresqltutorial.com/wp-content/uploads/2018/03/printable-postgresql-sample-database-diagram.pdf)
+
+The first item in the PRE-DEFINED TABLE PARAMETERS dropdown is for the "Film" table that corresponds to this sample database.
+
