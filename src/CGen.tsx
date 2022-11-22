@@ -174,8 +174,25 @@ const CGen = (): JSX.Element => {
   setting[i][8] = '';
   setting[i][9] = 'plan';
 
+  const getConnectUser = (connect: string):string => {
+    const leftside = connect?.split('@')?.[0] || ''
+    return leftside?.split(':')?.[0]
+  }
+
+  const getConnectPassword = (connect: string):string => {
+    const leftside = connect?.split('@')?.[0] || ''
+    return leftside?.split(':')?.[1] || ''
+  }  
+
+  const getConnectServer = (connect: string):string => {
+    return connect?.split('@')?.[1] || ''
+  }  
+
   const [connectIdx, setConnectIdx] = useState(1);
   const [connect, setConnect] = useState(connects[connectIdx][1]);
+  const [connectUser, setConnectUser] = useState(getConnectUser(connects[connectIdx][1]));
+  const [connectPassword, setConnectPassword] = useState(getConnectPassword(connects[connectIdx][1]));
+  const [connectServer, setConnectServer] = useState(getConnectServer(connects[connectIdx][1]));
   const [setIdx, setSetIdx] = useState(0);
   const [table, setTable] = useState(setting[setIdx][0]);
   const [entity, setEntity] = useState(setting[setIdx][1]);
@@ -191,7 +208,7 @@ const CGen = (): JSX.Element => {
 
   const getColumns = (table: string): Promise<CGenColumn[]> => {
     // postgres:postpost@localhost:5432/convergeplanningd
-    return Axios(cgenUrl + table + '&connect=' + connect).then(
+    return Axios(cgenUrl + table + '&connect=' + connectUser + ':' + connectPassword + '@' + connectServer).then(
       ({ data }: { data: CGenColumn[] }) => data,
     );
   };
@@ -293,9 +310,21 @@ const CGen = (): JSX.Element => {
           <br />
           <TitledInput
             width="100%"
-            title="POSTGRES DATABASE CONNECTION"
-            text={connect}
-            onChange={setConnect}
+            title="POSTGRES USER"
+            text={connectUser}
+            onChange={setConnectUser}
+          />
+          <TitledInput
+            width="100%"
+            title="PASSWORD"
+            text={connectPassword}
+            onChange={setConnectPassword}
+          />                    
+          <TitledInput
+            width="100%"
+            title="SERVER:PORT/DB"
+            text={connectServer}
+            onChange={setConnectServer}
           />
           <Button
             text="GENERATE CODE"

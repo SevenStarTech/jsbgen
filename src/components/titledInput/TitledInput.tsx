@@ -12,7 +12,7 @@ const TitledInput = ({
 }): JSX.Element => {
   return (
     <>
-    <div>{title}</div>
+    <div className="input-title">{title}</div>
       {rows > 1 ? 
         <textarea className="text-area" style={{height: rows.toString()+'rem'}}
         onChange={(event: any) => onChange(event.target.value)}
@@ -20,6 +20,7 @@ const TitledInput = ({
       :
         <input className="text-input"
           onChange={(event: any) => onChange(event.target.value)}
+          type={title.toUpperCase().indexOf('PASSWORD') >=0 && 'password'}
           value={text}
         ></input>
       }
